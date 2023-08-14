@@ -18,7 +18,7 @@ app.use(routes);
 function startServer() {
   try {
     app.listen({
-      host: "0.0.0.0",
+      host: "[::1]",
       port,
     });
   } catch (err) {
