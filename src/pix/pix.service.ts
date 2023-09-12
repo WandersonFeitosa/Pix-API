@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBillDTO } from './dto/create-bill.dto';
 import { getEfiToken } from 'src/utils/getEfiToken';
 import * as https from 'https';
@@ -6,6 +6,7 @@ import axios from 'axios';
 import * as fs from 'fs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SavePaymentDTO } from './dto/save-payment.dto';
+import { NotFoundError } from 'rxjs';
 
 const certificateFileName = process.env.CERTIFICATE_FILE_NAME as string;
 const efiBillNoTxidUrl = process.env.EFI_BILL_NO_TXID_URL as string;
@@ -39,18 +40,22 @@ export class PixService {
       httpsAgent: agent,
     };
 
-    const response = await axios(config)
-      .then(function (response: any) {
-        return response.data;
-      })
-      .catch(function (error: any) {
-        const errorData = error.response.data;
+    const response = async () => {
+      try {
+        const response = await axios(config);
+        const { status, calendario, location } = response.data;
+        return { status, calendario, location };
+      } catch (err) {
+        const errorData = err.response.data;
         return { message: 'Erro ao realizar a solicitação', errorData };
-      });
+      }
+    };
 
-    if (!response) return 'Erro ao gerar ao checar cobrança';
+    const pixInfo = await response();
 
-    const { status, calendario, location } = response;
+    if (pixInfo.errorData) return pixInfo.errorData;
+
+    const { status, calendario, location } = pixInfo;
 
     if (status == 'ATIVA') {
       const dateNow = new Date();
@@ -59,7 +64,14 @@ export class PixService {
       const diff = dateNow.getTime() - creationDate.getTime();
 
       if (diff > 3600000) {
-        await this.updatePayment({ txid, status: 'EXPIRADA' });
+        try {
+          await this.updatePayment({ txid, status: 'EXPIRADA' });
+        } catch (err) {
+          return {
+            status: 'EXPIRADA',
+            message: 'Erro ao atualizar o status do seu pagamento',
+          };
+        }
         return { status: 'EXPIRADA' };
       } else {
         return { status, location };
@@ -99,16 +111,21 @@ export class PixService {
       data: data,
     };
 
-    const response = await axios(config)
-      .then(function (response: any) {
+    const response = async () => {
+      try {
+        const response = await axios(config);
         return response.data;
-      })
-      .catch(function (error: any) {
-        const errorData = error.response.data;
-        return { message: 'Erro ao gerar a cobrança', errorData };
-      });
+      } catch (err) {
+        const errorData = err.response.data;
+        return { message: 'Erro ao realizar a solicitação', errorData };
+      }
+    };
 
-    const { txid, valor, location } = response;
+    const paymentInfo = await response();
+
+    if (paymentInfo.errorData) return paymentInfo;
+
+    const { txid, valor, location } = paymentInfo;
 
     return { txid, valor, location };
   }

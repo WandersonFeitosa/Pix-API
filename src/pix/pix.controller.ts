@@ -21,9 +21,9 @@ export class PixController {
       reason,
     });
 
-    const { txid, location } = payment;
+    const { txid, location, errorData } = payment;
 
-    if (!txid) return { message: 'Erro ao gerar pagamento' };
+    if (errorData) return errorData;
 
     const savePayment = await this.pixsevice.savePayment({
       name,
@@ -36,6 +36,6 @@ export class PixController {
 
     if (!savePayment) return { message: 'Erro ao salvar sua transação' };
 
-    return { message: 'Pagamento gerado com sucesso', savePayment , payment};
+    return { message: 'Pagamento gerado com sucesso', savePayment, payment };
   }
 }
