@@ -4,5 +4,11 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true
-  }
+  },
+    "copyFiles": [
+    {
+      "from": "src/certificates",
+      "to": "certificates"
+    }
+  ]
 }

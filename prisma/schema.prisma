@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Bill {
+  id        Int       @id @default(autoincrement()) @db.UnsignedInt
+  name      String    @db.VarChar(45)
+  cpf       String    @db.VarChar(45)
+  txid      String    @unique(map: "txid_UNIQUE") @db.VarChar(45)
+  value     Int
+  reason    String?   @db.VarChar(256)
+  createdAt DateTime  @db.Timestamp(0)
+  paidAt    DateTime? @db.Timestamp(0)
+  location  String    @unique(map: "location_UNIQUE") @db.VarChar(256)
+  status    String    @db.VarChar(45)
+
+  @@map("bills")
+}
