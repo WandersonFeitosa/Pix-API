@@ -21,3 +21,13 @@ model Bill {
 
   @@map("bills")
 }
+
+model User {
+  id       Int    @id @default(autoincrement())
+  username String @unique(map: "username_UNIQUE") @db.VarChar(45)
+  name     String @db.VarChar(45)
+  email    String @unique(map: "email_UNIQUE") @db.VarChar(45)
+  password String @db.VarChar(80)
+
+  @@map("users")
+}

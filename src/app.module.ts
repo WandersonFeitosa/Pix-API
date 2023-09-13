@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PixModule } from './pix/pix.module';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { UserModule } from './user/user.module';
 
 const redisConfig = {
   host: process.env.REDIS_HOST as string,
@@ -10,6 +11,7 @@ const redisConfig = {
 };
 @Module({
   imports: [
+    UserModule,
     PixModule,
     RedisModule.forRoot({
       config: redisConfig,
@@ -18,4 +20,4 @@ const redisConfig = {
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
