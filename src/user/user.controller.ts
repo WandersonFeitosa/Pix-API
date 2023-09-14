@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post, HttpException } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { CreateUserDTO } from "./dto/create-user.dto";
 
@@ -9,6 +9,11 @@ export class UserController {
     @Post()
     async createUser(@Body() body: CreateUserDTO) {
         const user = await this.userservice.createUser(body);
+
+        if (user.err) {
+            throw new HttpException(user.err, 500)
+        }
+
         return user;
     }
 }
