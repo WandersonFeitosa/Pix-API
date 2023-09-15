@@ -33,6 +33,10 @@ interface TranscationInterface {
   status: string;
   ownerId: number;
 }
+interface GeneratePaymentInterface {
+  newBillInfo: CreateBillDTO;
+  ownerId: number;
+}
 
 @Injectable()
 export class PixService {
@@ -42,8 +46,6 @@ export class PixService {
   ) { }
 
   async checkPayment(params: { txid: string }) {
-    const list = await this.redis.get('teste');
-
     const txid = params.txid;
 
     const token = await getEfiToken();
@@ -100,7 +102,7 @@ export class PixService {
     if (status == 'CONCLUIDA') return { status };
   }
 
-  async generatePayment({ newBillInfo, ownerId }: { newBillInfo: CreateBillDTO, ownerId: number }) {
+  async generatePayment({ newBillInfo, ownerId }: GeneratePaymentInterface): Promise<{ newPaymentInfo?: { txid: any, valor: any, location: any }, message?: string, err?: any }> {
     const billData = {
       calendario: {
         expiracao: 3600,
@@ -146,33 +148,30 @@ export class PixService {
 
     const { txid, valor, location } = paymentInfo;
 
-    try {
-      await this.saveRedisData({
-        ...newBillInfo,
-        txid,
-        value: valor,
-        location,
-        ownerId
-      });
-    } catch (err) {
-      return {
-        message: 'Erro ao salvar os dados no banco de dados',
-        errorData: err,
-      };
-    }
+    const newPaymentData = {
+      ...newBillInfo,
+      txid,
+      value: valor,
+      location,
+      ownerId,
+      createdAt: new Date(),
+      status: 'ATIVA',
+    };
 
-    return { txid, valor, location };
+    const saveRedis = await this.saveRedisData(newPaymentData);
+
+    if (saveRedis.err) return { message: 'Erro ao salvar os dados da cobrança', err: saveRedis.err };
+
+    const newPaymentInfo = {
+      txid,
+      valor,
+      location,
+    }
+    return { newPaymentInfo };
   }
 
-  async saveRedisData({
-    name,
-    cpf,
-    txid,
-    value,
-    reason,
-    location,
-    ownerId
-  }: SavePaymentDTO): Promise<{ message: string; sucess: boolean; err?: any }> {
+  async saveRedisData(newPaymentData: SavePaymentDTO): Promise<{ sucess: boolean; err?: any }> {
+
     const date = new Date();
     const day = date.getDate();
     const month = date.getMonth() + 1;
@@ -184,49 +183,18 @@ export class PixService {
 
     const list: TranscationInterface[] = JSON.parse(jsonList);
 
-    const formattedValue = Number(value);
-
-    const newPaymentData = {
-      name,
-      cpf,
-      txid,
-      value: formattedValue,
-      reason,
-      location,
-      createdAt: date,
-      status: 'ATIVA',
-      ownerId
-    };
-
     list.push(newPaymentData);
-
-    if (list.length >= 10) {
-      try {
-        await this.prisma.bill.createMany({
-          data: list,
-        });
-        await this.redis.del(createdAt);
-        return { message: 'Dados salvos com sucesso', sucess: true };
-      } catch (err) {
-        return {
-          message: 'Erro ao salvar os dados no banco de dados',
-          sucess: false,
-          err,
-        };
-      }
-    }
 
     try {
       await this.redis.set(createdAt, JSON.stringify(list));
     } catch (err) {
       return {
-        message: 'Erro ao salvar os dados no redis',
         sucess: false,
         err,
       };
     }
 
-    return { message: 'Dados salvos com sucesso', sucess: true };
+    return { sucess: true };
   }
   async updatePayment({ txid, status }) {
     return this.prisma.bill.update({
@@ -238,6 +206,7 @@ export class PixService {
       },
     });
   }
+
   @Cron("0 10 * * * *")
   async upadtePendingPayments() {
 

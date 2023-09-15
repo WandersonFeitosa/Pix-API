@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, UseGuards,  Headers } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseGuards, Headers } from '@nestjs/common';
 import 'dotenv/config';
 import { PixService } from './pix.service';
 import { CreateBillDTO } from './dto/create-bill.dto';
@@ -20,9 +20,7 @@ export class PixController {
 
     const payment = await this.pixsevice.generatePayment({ newBillInfo, ownerId: user.id });
 
-    const { errorData } = payment;
-
-    if (errorData) return errorData;
+    if (payment.err) return payment.err;
 
     return { message: 'Pagamento gerado com sucesso', payment };
   }
