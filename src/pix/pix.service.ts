@@ -31,6 +31,7 @@ interface TranscationInterface {
   location: string;
   createdAt: Date;
   status: string;
+  ownerId: number;
 }
 
 @Injectable()
@@ -38,7 +39,7 @@ export class PixService {
   constructor(
     private readonly prisma: PrismaService,
     @InjectRedis() private readonly redis: Redis,
-  ) {}
+  ) { }
 
   async checkPayment(params: { txid: string }) {
     const list = await this.redis.get('teste');
@@ -99,20 +100,20 @@ export class PixService {
     if (status == 'CONCLUIDA') return { status };
   }
 
-  async generatePayment({ cpf, value, name, reason }: CreateBillDTO) {
+  async generatePayment({ newBillInfo, ownerId }: { newBillInfo: CreateBillDTO, ownerId: number }) {
     const billData = {
       calendario: {
         expiracao: 3600,
       },
       devedor: {
-        cpf: cpf,
-        nome: name,
+        cpf: newBillInfo.cpf,
+        nome: newBillInfo.name,
       },
       valor: {
-        original: value,
+        original: newBillInfo.value,
       },
       chave: pixKey,
-      solicitacaoPagador: reason,
+      solicitacaoPagador: newBillInfo.reason,
     };
 
     const token = await getEfiToken();
@@ -145,14 +146,20 @@ export class PixService {
 
     const { txid, valor, location } = paymentInfo;
 
-    this.saveRedisData({
-      name,
-      cpf,
-      txid,
-      value,
-      reason,
-      location,
-    });
+    try {
+      await this.saveRedisData({
+        ...newBillInfo,
+        txid,
+        value: valor,
+        location,
+        ownerId
+      });
+    } catch (err) {
+      return {
+        message: 'Erro ao salvar os dados no banco de dados',
+        errorData: err,
+      };
+    }
 
     return { txid, valor, location };
   }
@@ -164,6 +171,7 @@ export class PixService {
     value,
     reason,
     location,
+    ownerId
   }: SavePaymentDTO): Promise<{ message: string; sucess: boolean; err?: any }> {
     const date = new Date();
     const day = date.getDate();
@@ -176,8 +184,6 @@ export class PixService {
 
     const list: TranscationInterface[] = JSON.parse(jsonList);
 
-    console.log(list.length);
-
     const formattedValue = Number(value);
 
     const newPaymentData = {
@@ -189,16 +195,25 @@ export class PixService {
       location,
       createdAt: date,
       status: 'ATIVA',
+      ownerId
     };
 
     list.push(newPaymentData);
 
     if (list.length >= 10) {
-      await this.prisma.bill.createMany({
-        data: list,
-      });
-      await this.redis.del(createdAt);
-      return { message: 'Dados salvos com sucesso', sucess: true };
+      try {
+        await this.prisma.bill.createMany({
+          data: list,
+        });
+        await this.redis.del(createdAt);
+        return { message: 'Dados salvos com sucesso', sucess: true };
+      } catch (err) {
+        return {
+          message: 'Erro ao salvar os dados no banco de dados',
+          sucess: false,
+          err,
+        };
+      }
     }
 
     try {
