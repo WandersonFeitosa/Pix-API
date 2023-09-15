@@ -5,6 +5,7 @@ import { PixModule } from './pix/pix.module';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const redisConfig = {
   host: process.env.REDIS_HOST as string,
@@ -15,6 +16,7 @@ const redisConfig = {
     UserModule,
     PixModule,
     AuthModule,
+    ScheduleModule.forRoot(),
     RedisModule.forRoot({
       config: redisConfig,
     }),

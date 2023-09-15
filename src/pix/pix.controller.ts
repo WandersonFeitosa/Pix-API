@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, UseGuards, Header, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseGuards,  Headers } from '@nestjs/common';
 import 'dotenv/config';
 import { PixService } from './pix.service';
 import { CreateBillDTO } from './dto/create-bill.dto';

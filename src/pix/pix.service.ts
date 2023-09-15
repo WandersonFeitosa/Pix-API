@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateBillDTO } from './dto/create-bill.dto';
 import { getEfiToken } from 'src/utils/getEfiToken';
 import * as https from 'https';
@@ -6,9 +6,9 @@ import axios from 'axios';
 import * as fs from 'fs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SavePaymentDTO } from './dto/save-payment.dto';
-import { NotFoundError } from 'rxjs';
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 const certificateFileName = process.env.CERTIFICATE_FILE_NAME as string;
 const efiBillNoTxidUrl = process.env.EFI_BILL_NO_TXID_URL as string;
@@ -237,5 +237,34 @@ export class PixService {
         txid,
       },
     });
+  }
+  @Cron("0 10 * * * *")
+  async upadtePendingPayments() {
+
+    const activePayments = await this.prisma.bill.findMany({
+      where: {
+        status: 'ATIVA'
+      }
+    });
+
+    const dateNow = new Date();
+
+    activePayments.forEach(async (payment) => {
+      const creationDate = new Date(payment.createdAt);
+
+      const diff = dateNow.getTime() - creationDate.getTime();
+
+      if (diff > 3600000) {
+        try {
+          await this.updatePayment({ txid: payment.txid, status: 'EXPIRADA' });
+        } catch (err) {
+          return {
+            status: 'EXPIRADA',
+            message: 'Erro ao atualizar o status do seu pagamento',
+          };
+        }
+      }
+    })
+
   }
 }

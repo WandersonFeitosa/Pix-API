@@ -800,6 +800,14 @@
     multer "1.4.4-lts.1"
     tslib "2.6.2"
 
+"@nestjs/schedule@^3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@nestjs/schedule/-/schedule-3.0.3.tgz#b9fdb5a3d765676a3238077c882b8fe2336772ec"
+  integrity sha512-xsMA4dmP3LcW3rt2iMPfm88bDbCj/hLuDsLrKmJQlbnxyCYtBwLtmu/4cSfZELLM7pTDT+E8QDAqGwhYyUUjxg==
+  dependencies:
+    cron "2.4.1"
+    uuid "9.0.0"
+
 "@nestjs/schematics@^10.0.0", "@nestjs/schematics@^10.0.1":
   version "10.0.2"
   resolved "https://registry.yarnpkg.com/@nestjs/schematics/-/schematics-10.0.2.tgz#d782ac1a6e9372d2f7ede1e2077c3a7484714923"
@@ -2158,6 +2166,13 @@ create-require@^1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/create-require/-/create-require-1.1.1.tgz#c1d7e8f1e5f6cfc9ff65f9cd352d37348756c333"
   integrity sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==
+
+cron@2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/cron/-/cron-2.4.1.tgz#90000398576beb3787339a1b3131f336aed10771"
+  integrity sha512-ty0hUSPuENwDtIShDFxUxWEIsqiu2vhoFtt6Vwrbg4lHGtJX2/cV2p0hH6/qaEM9Pj+i6mQoau48BO5wBpkP4w==
+  dependencies:
+    luxon "^3.2.1"
 
 cross-spawn@^7.0.0, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
   version "7.0.3"
@@ -3917,6 +3932,11 @@ lru-cache@^6.0.0:
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-10.0.1.tgz#0a3be479df549cca0e5d693ac402ff19537a6b7a"
   integrity sha512-IJ4uwUTi2qCccrioU6g9g/5rvvVl13bsdczUUcqbciD9iLr095yj8DQKdObriEvuNSx325N1rV1O0sJFszx75g==
 
+luxon@^3.2.1:
+  version "3.4.3"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.4.3.tgz#8ddf0358a9492267ffec6a13675fbaab5551315d"
+  integrity sha512-tFWBiv3h7z+T/tDaoxA8rqTxy1CHV6gHS//QdaH4pulbq/JuBSGgQspQQqcgnwdAx6pNI7cmvz5Sv/addzHmUg==
+
 macos-release@^2.5.0:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/macos-release/-/macos-release-2.5.1.tgz#bccac4a8f7b93163a8d163b8ebf385b3c5f55bf9"
@@ -5353,6 +5373,11 @@ uuid@8.3.2, uuid@^8:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+
+uuid@9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
+  integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"
