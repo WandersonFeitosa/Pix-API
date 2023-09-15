@@ -16,7 +16,7 @@ export class AuthService {
 
         };
         const options = {
-            expiresIn: "1m",
+            expiresIn: "180d",
         };
 
         const access_token = this.jwtService.sign(payload, options);
@@ -35,5 +35,26 @@ export class AuthService {
             return { err };
         }
         return { access_token };
+    }
+
+    async validateToken(token: string): Promise<{ user?: User, err?: any }> {
+        try {
+            const payload = this.jwtService.verify(token);
+            const user = await this.prisma.user.findUnique({
+                where: {
+                    id: payload.sub
+                }
+            });
+            if (!user) {
+                throw new Error("User not found");
+            }
+            delete user.password;
+
+            return { user };
+
+        }
+        catch (err) {
+            return { err };
+        }
     }
 }

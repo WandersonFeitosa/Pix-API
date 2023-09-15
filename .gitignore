@@ -1,8 +1,13 @@
+#misc
+/src/certificates
+.env
+database.ts
+
+
 # compiled output
 /dist
 /node_modules
-/src/certificates
-.env
+
 
 # Logs
 logs

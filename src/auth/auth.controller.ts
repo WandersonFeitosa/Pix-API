@@ -10,7 +10,7 @@ export class AuthController {
         private readonly authService: AuthService
     ) { }
 
-    @Post()
+    @Post("createUser")
     async register(@Body() body: CreateUserDTO) {
         const user = await this.userService.createUser(body);
 
@@ -34,5 +34,23 @@ export class AuthController {
         }
 
         return { userInfo, access_token };
+    }
+    @Post("validateUser")
+    async validateUser(@Body() body: { token: string }) {
+        const token = body.token;
+
+        const user = await this.authService.validateToken(token);
+
+        if (user.err) {
+            throw new HttpException(user.err, 500)
+        }
+
+        const userInfo = {
+            username: user.user.username,
+            name: user.user.name,
+            email: user.user.email,
+        }
+
+        return { userInfo };
     }
 }
