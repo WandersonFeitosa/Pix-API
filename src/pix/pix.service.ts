@@ -26,7 +26,7 @@ interface TranscationInterface {
   name: string;
   cpf: string;
   txid: string;
-  value: number;
+  value: string;
   reason: string;
   location: string;
   createdAt: Date;
@@ -151,7 +151,7 @@ export class PixService {
     const newPaymentData = {
       ...newBillInfo,
       txid,
-      value: valor,
+      value: valor.original,
       location,
       ownerId,
       createdAt: new Date(),
@@ -176,8 +176,9 @@ export class PixService {
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
+    const hour = date.getHours();
 
-    const createdAt = `${day}/${month}/${year}`;
+    const createdAt = `${day}/${month}/${year}-${hour}`;
 
     const jsonList = (await this.redis.get(createdAt)) || '[]';
 
@@ -206,8 +207,34 @@ export class PixService {
       },
     });
   }
+  @Cron("58 59 * * * *")
+  async movePaymentsToSQL() {
+    const date = new Date();
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    const hour = date.getHours();
 
-  @Cron("0 10 * * * *")
+    const createdAt = `${day}/${month}/${year}-${hour}`;
+
+    const jsonList = (await this.redis.get(createdAt)) || '[]';
+
+    const list: TranscationInterface[] = JSON.parse(jsonList);
+
+    try {
+      await this.prisma.bill.createMany({
+        data: list,
+        skipDuplicates: true,
+      });
+
+      await this.redis.del(createdAt);
+    }
+    catch (err) {
+      Logger.error(err)
+    }
+  }
+
+  @Cron("00 00 * * * *")
   async upadtePendingPayments() {
 
     const activePayments = await this.prisma.bill.findMany({

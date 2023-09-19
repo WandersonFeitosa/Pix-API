@@ -6,7 +6,7 @@ export class CreateBillDTO {
   cpf: string;
 
   @IsString()
-  value: number;
+  value: string;
 
   @IsString()
   reason: string;

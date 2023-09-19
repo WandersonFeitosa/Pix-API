@@ -12,15 +12,16 @@ model Bill {
   name      String    @db.VarChar(45)
   cpf       String    @db.VarChar(45)
   txid      String    @unique(map: "txid_UNIQUE") @db.VarChar(45)
-  value     Int
+  value     String    @db.VarChar(45)
   reason    String?   @db.VarChar(256)
   createdAt DateTime  @db.Timestamp(0)
   paidAt    DateTime? @db.Timestamp(0)
   location  String    @unique(map: "location_UNIQUE") @db.VarChar(256)
   status    String    @db.VarChar(45)
-  owner     User      @relation(fields: [ownerId], references: [id])
   ownerId   Int
+  owner     User      @relation(fields: [ownerId], references: [id])
 
+  @@index([ownerId], map: "bills_ownerId_fkey")
   @@map("bills")
 }
 
